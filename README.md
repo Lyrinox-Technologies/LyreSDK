@@ -1,9 +1,12 @@
 # LyreSDK
 
-The default Go SDK for Lyre-native software. One module provides authenticated
-clients, capability calls, provider/service hosting, and ephemeral cache helpers.
-It depends only on **Go 1.25+ and RDGProto v1.0.0**. No other runtime or test
-libraries are required, including for WebSocket transport.
+The default Go core SDK for Lyre-native software. This module owns protocol,
+transport, authentication, generic capability invocation, service/provider
+hosting, and the small lifecycle primitives needed to connect to The Lyre. It
+depends only on **Go 1.25+ and RDGProto v1.0.0**.
+
+Typed domain APIs such as charts and cache live in first-party Forge Mods. Forge
+combines LyreSDK core with selected Mods when it builds a customized runtime.
 
 ```go
 import lyresdk "github.com/Lyrinox-Technologies/LyreSDK"
@@ -17,7 +20,7 @@ require github.com/Lyrinox-Technologies/LyreSDK v0.0.0
 replace github.com/Lyrinox-Technologies/LyreSDK => ../../Libraries/LyreSDK
 ```
 
-## Call capabilities and use cache
+## Call capabilities
 
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -30,29 +33,7 @@ if err := client.LoginAgent(ctx, os.Getenv("LYRE_AGENT_KEY")); err != nil { retu
 var result struct { UUIDs []string `json:"uuids"` }
 if err := client.Call(ctx, "lyre.uuid.generate@v1",
     map[string]any{"version": "v4", "count": 1}, &result); err != nil { return err }
-
-cache := client.Cache("my-application", lyresdk.CacheOptions{ProviderID: "lyrinox"})
-entry, err := cache.Put(ctx, "identifiers", result, 5*time.Minute)
-if err != nil { return err }
-var saved struct { UUIDs []string `json:"uuids"` }
-_, found, err := cache.Get(ctx, "identifiers", &saved)
-if err != nil { return err }
-if found {
-    _, err = cache.PutIfRevision(ctx, "identifiers", saved, time.Minute, entry.Revision)
-    if err != nil { return err }
-}
-_, err = cache.Clear(ctx)
-return err
 ```
-
-The cache is caller-scoped, in-memory state supplied by a capability provider.
-It is not cloud storage: entries expire, may be evicted, and disappear on provider
-restart. Pin all related operations to the same provider. The official provider
-currently defaults TTL to 300 seconds and accepts whole seconds through 24 hours.
-A zero SDK TTL selects that default. `PutIfRevision` with an empty revision means
-create-only. Also available: `Delete`, `DeleteIfRevision`, paginated `List`, and
-atomic integer `Increment`. `Clear` clears only this caller's selected namespace.
-An absent entry returns `found=false` without modifying your output value.
 
 `Call` accepts a JSON object (Go structs or maps) and decodes into your type.
 `CallResponse` exposes success, the raw JSON payload, and provider error text.
@@ -86,12 +67,18 @@ return service.RunPersistent(ctx)
 
 Publish approved capability contracts through `ServiceConfig.Capabilities` and
 supply the publisher user/private-key proof required by Lyre. Private endpoints
-need no public capability declaration. `Request.Principal` exposes the identity
-forwarded by Lyre. Handlers may call capabilities and use `service.Cache` while
-the reader continues receiving responses. Handlers are bounded (64 by default),
-and panics become error responses. `RunPersistent` reconnects with backoff,
-republishes declarations, sends heartbeats, and stops when its context is canceled.
-In-flight calls are never replayed: retrying a mutation may duplicate its effect.
+need no public capability declaration. `ProviderExtension` declarations are
+provider-specific capability adapters: they contain bounded schemas and field
+maps only, keep the wire JSON name `extensions`, and never execute code. The old
+`Extension` and `ExtensionError` names remain deprecated aliases for source
+compatibility.
+
+`Request.Principal` exposes the identity forwarded by Lyre. Handlers may call
+capabilities while the reader continues receiving responses. Handlers are bounded
+(64 by default), and panics become error responses. `RunPersistent` reconnects
+with backoff, republishes declarations, sends heartbeats, and stops when its
+context is canceled. In-flight calls are never replayed: retrying a mutation may
+duplicate its effect.
 
 ## Raw RDGProto remains available
 
@@ -125,10 +112,10 @@ type Caller interface {
 }
 ```
 
-Forge-generated bindings, capability chains, and Market library integrations can
-compose this interface and `NewCache` without adding dependencies to the default
-SDK. Those custom generation features are future work. This module supplies the
-base primitives; Forge's current component catalogue identifies it as LyreSDK.
+Forge Mods use this core seam for typed capability bindings, validation, codecs,
+and hybrid local/remote behavior. LyreSDK core does not include domain-specific
+chart or cache helpers; those live under Forge Mods and are selected by Forge
+project manifests.
 
 ## Verification
 
@@ -138,32 +125,7 @@ go vet ./...
 go list -m all
 ```
 
-Tests cover RDGProto authentication/MFA, agent credentials, concurrent correlation,
-late responses, control timeouts, nested provider calls, publication, heartbeats,
-WebSocket masking/fragmentation/control frames/length boundaries, and TLS checks.
-The official provider additionally tests the cache helpers through raw RDGProto
-against its actual handlers. See [MIGRATION.md](MIGRATION.md) for the consumer audit.
-
-## First-party charts
-
-`Client.CreateChart` and `Service.CreateChart` call `lyre.chart.create@v1`
-through the ordinary RDGProto capability path:
-
-```go
-chart, err := client.CreateChart(ctx, lyresdk.ChartRequest{
-    ChartSpec: lyresdk.ChartSpec{
-        Type: "bar", Title: "Top clients",
-        Data: []lyresdk.ChartPoint{{Label: "Example", Value: 42}},
-    },
-    Delivery: lyresdk.ChartRefreshableSVG,
-    RefreshSeconds: 60,
-})
-```
-
-The package contains `Spec`, `SVG`, `Update`, `Cache`, and `Accessibility`.
-Use `request.WithData(points)` then `CreateChart` for replacement data; the
-provider regenerates all derived fields. `live_spec` permits a consumer to
-render replacement data locally; its SVG is a snapshot until reinvoked.
-There is no provider-owned stream or data fetching. Cache keys are opaque,
-content-based identifiers; respect the package's private cache scope and age.
-Raw `Call`, including provider-pinned references, remains fully supported.
+Tests cover RDGProto authentication/MFA, agent credentials, concurrent
+correlation, late responses, control timeouts, nested provider calls, publication,
+heartbeats, WebSocket masking/fragmentation/control frames/length boundaries, and
+TLS checks. See [MIGRATION.md](MIGRATION.md) for the consumer audit.
