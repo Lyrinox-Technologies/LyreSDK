@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
+	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
 )
 
 // ServiceAuthPayload is sent by services to authenticate with Lyre-Server.
@@ -34,7 +34,7 @@ type ServiceCapability struct {
 	ProviderSoftwareVersion string                 `json:"provider_software_version,omitempty"`
 	Description             string                 `json:"description,omitempty"`
 	Metadata                map[string]interface{} `json:"metadata,omitempty"`
-	Extensions              []Extension            `json:"extensions,omitempty"`
+	Extensions              []ProviderExtension    `json:"extensions,omitempty"`
 }
 
 func (p *ServiceAuthPayload) Marshal() ([]byte, error) {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
+	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
 )
 
 const (

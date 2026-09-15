@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/Lyrinox-Technologies/LyreSDK/wire"
-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
+	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
 	"net"
 	"sync"
 	"testing"

@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/Lyrinox-Technologies/LyreSDK/wire"
-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
+	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
 )
 
 var ErrClosed = errors.New("Lyre connection closed")

@@ -3,7 +3,7 @@ package wire
 import (
 	"bytes"
 
-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
+	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
 )
 
 // AgentRegisterRequestPayload creates an independent, non-human Lyre

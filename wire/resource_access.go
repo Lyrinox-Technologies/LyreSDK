@@ -2,7 +2,7 @@ package wire
 
 import (
 	"bytes"
-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
+	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
 )
 
 type ResourceAccessRequestPayload struct{ Action, ServiceID, UserID, Role string }

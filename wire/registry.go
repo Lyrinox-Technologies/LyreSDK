@@ -1,6 +1,6 @@
 package wire
 
-import "github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
+import "github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
 
 // NewRegistry isolates Lyre payload types from application RDGProto registries.
 func NewRegistry() *rdgproto.PayloadRegistry {

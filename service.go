@@ -12,12 +12,20 @@ import (
 	"time"
 
 	"github.com/Lyrinox-Technologies/LyreSDK/wire"
-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
+	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
 )
 
 type Capability = wire.ServiceCapability
-type Extension = wire.Extension
-type ExtensionError = wire.ExtensionError
+type ProviderExtension = wire.ProviderExtension
+type ProviderExtensionError = wire.ProviderExtensionError
+
+// Extension is a deprecated source-compatible alias for ProviderExtension.
+// Deprecated: use ProviderExtension.
+type Extension = ProviderExtension
+
+// ExtensionError is a deprecated source-compatible alias for ProviderExtensionError.
+// Deprecated: use ProviderExtensionError.
+type ExtensionError = ProviderExtensionError
 type Execution = wire.Execution
 type Principal struct{ Type, ID, Username, Email, AgentName string }
 type Request struct {

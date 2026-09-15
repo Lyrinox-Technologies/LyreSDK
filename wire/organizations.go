@@ -3,7 +3,7 @@ package wire
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
+	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
 )
 
 type OrganizationRequestPayload struct {

@@ -34,25 +34,33 @@ func run() error {
 	if len(ids.UUIDs) != 1 {
 		return fmt.Errorf("provider returned no UUID")
 	}
-	cache := c.Cache("example_"+ids.UUIDs[0], lyresdk.CacheOptions{ProviderID: "lyrinox"})
+	namespace := "example_" + ids.UUIDs[0]
 	defer func() {
 		cleanup, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if _, err := cache.Clear(cleanup); err != nil {
+		var out struct {
+			Deleted int `json:"deleted"`
+		}
+		if err := c.Call(cleanup, "lyre.cache.clear@v1:lyrinox.cache.clear", map[string]any{"namespace": namespace}, &out); err != nil {
 			log.Printf("cache cleanup failed; TTL remains: %v", err)
 		}
 	}()
-	if _, err = cache.Put(ctx, "message", "Hello from LyreSDK", time.Minute); err != nil {
+	var put struct {
+		Revision string `json:"revision"`
+	}
+	if err = c.Call(ctx, "lyre.cache.put@v1:lyrinox.cache.put", map[string]any{"namespace": namespace, "key": "message", "value": "Hello from LyreSDK", "ttl_seconds": 60}, &put); err != nil {
 		return err
 	}
-	var message string
-	_, found, err := cache.Get(ctx, "message", &message)
-	if err != nil {
+	var got struct {
+		Found bool   `json:"found"`
+		Value string `json:"value"`
+	}
+	if err = c.Call(ctx, "lyre.cache.get@v1:lyrinox.cache.get", map[string]any{"namespace": namespace, "key": "message"}, &got); err != nil {
 		return err
 	}
-	if !found {
+	if !got.Found {
 		return fmt.Errorf("cache entry expired or was evicted")
 	}
-	fmt.Println(message)
+	fmt.Println(got.Value)
 	return nil
 }
