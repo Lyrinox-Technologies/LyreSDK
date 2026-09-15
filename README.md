@@ -143,3 +143,27 @@ late responses, control timeouts, nested provider calls, publication, heartbeats
 WebSocket masking/fragmentation/control frames/length boundaries, and TLS checks.
 The official provider additionally tests the cache helpers through raw RDGProto
 against its actual handlers. See [MIGRATION.md](MIGRATION.md) for the consumer audit.
+
+## First-party charts
+
+`Client.CreateChart` and `Service.CreateChart` call `lyre.chart.create@v1`
+through the ordinary RDGProto capability path:
+
+```go
+chart, err := client.CreateChart(ctx, lyresdk.ChartRequest{
+    ChartSpec: lyresdk.ChartSpec{
+        Type: "bar", Title: "Top clients",
+        Data: []lyresdk.ChartPoint{{Label: "Example", Value: 42}},
+    },
+    Delivery: lyresdk.ChartRefreshableSVG,
+    RefreshSeconds: 60,
+})
+```
+
+The package contains `Spec`, `SVG`, `Update`, `Cache`, and `Accessibility`.
+Use `request.WithData(points)` then `CreateChart` for replacement data; the
+provider regenerates all derived fields. `live_spec` permits a consumer to
+render replacement data locally; its SVG is a snapshot until reinvoked.
+There is no provider-owned stream or data fetching. Cache keys are opaque,
+content-based identifiers; respect the package's private cache scope and age.
+Raw `Call`, including provider-pinned references, remains fully supported.
