@@ -388,3 +388,26 @@ func (c *Client) respond(id string, r *Response) {
 	defer cancel()
 	_ = c.send(ctx, wire.MsgTypeServiceResponse, &wire.ServiceResponsePayload{MessageID: id, Success: r.Success, Payload: data, Error: r.Error})
 }
+
+// NotifyUser sends a hint over Lyre's existing authenticated consumer connections.
+// Payloads must contain no secrets: all sessions of this identity may receive it.
+func (s *Service) NotifyUser(ctx context.Context, user, endpoint string, payload map[string]any) error {
+	if user == "" || endpoint == "" {
+		return errors.New("user and endpoint required")
+	}
+	c, err := s.connection()
+	if err != nil {
+		return err
+	}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	id, err := requestID()
+	if err != nil {
+		return err
+	}
+	return c.Send(ctx, wire.MsgTypeServiceToClient, &wire.ServiceToClientPayload{
+		MessageID: id, FromService: s.config.ServiceID, ToUser: user, Endpoint: endpoint, Payload: data,
+	})
+}

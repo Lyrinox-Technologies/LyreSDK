@@ -75,3 +75,43 @@ func TestRunPersistentCancellation(t *testing.T) {
 		t.Fatal("canceled service kept reconnecting")
 	}
 }
+
+func TestServiceNotification(t *testing.T) {
+	listener, e := net.Listen("tcp", "127.0.0.1:0")
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer listener.Close()
+	finished := make(chan struct{})
+	go func() {
+		defer close(finished)
+		conn, e := listener.Accept()
+		if e != nil {
+			t.Error(e)
+			return
+		}
+		defer conn.Close()
+		_ = conn.SetDeadline(time.Now().Add(3 * time.Second))
+		p := rdgproto.NewProtocol(conn, &rdgproto.MessageOptions{Registry: rdgproto.NewPayloadRegistry()})
+		var auth wire.ServiceAuthPayload
+		receive(t, p, wire.MsgTypeServiceAuth, &auth)
+		sendTest(t, p, wire.MsgTypeServiceAuthResponse, &wire.ServiceAuthResponsePayload{Success: true})
+		var push wire.ServiceToClientPayload
+		receive(t, p, wire.MsgTypeServiceToClient, &push)
+		if push.FromService != "syscodex-provider" || push.ToUser != "alice" || push.Endpoint != "syscodex.work" || string(push.Payload) != `{"machine":"pc"}` {
+			t.Errorf("wrong notification: %+v", push)
+		}
+	}()
+	s, e := NewService(ServiceConfig{ServiceID: "syscodex-provider", Secret: "test-secret", ServerURL: "tcp://" + listener.Addr().String()})
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Close()
+	if e = s.Connect(); e != nil {
+		t.Fatal(e)
+	}
+	if e = s.NotifyUser(context.Background(), "alice", "syscodex.work", map[string]any{"machine": "pc"}); e != nil {
+		t.Fatal(e)
+	}
+	<-finished
+}
