@@ -129,3 +129,16 @@ Tests cover RDGProto authentication/MFA, agent credentials, concurrent
 correlation, late responses, control timeouts, nested provider calls, publication,
 heartbeats, WebSocket masking/fragmentation/control frames/length boundaries, and
 TLS checks. See [MIGRATION.md](MIGRATION.md) for the consumer audit.
+
+## Native identity objects and servers
+
+`Client.IdentityObjects` and `Service.IdentityObjects` use core RDGProto 41/42,
+not a service-specific REST API. `Client.AttachServer` requires a machine-authenticated
+connection; `Service.ListIdentityServers` reads active attachments scoped to that
+provider. Arbitrary kinds share the same ownership/metadata model. Standard human
+sessions can revoke/restore; provider and machine credentials cannot restore.
+
+See Lyre-Server's `docs/identity-objects.md` and coordinated
+`docs/rdgproto-1.0.3-migration.md`. Server and SDK must both use the canonical
+RDGProto v1.0.3 module. `go run ./examples/identity -action list` demonstrates
+human object administration (credentials through a private environment, MFA prompted).

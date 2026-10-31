@@ -1010,6 +1010,8 @@ func RegisterPayloadTypes(registry *rdgproto.PayloadRegistry) {
 	registry.Register(MsgTypeDirectMessage, func() rdgproto.PayloadUnmarshaler {
 		return &DirectMessagePayload{}
 	})
+	registry.Register(MsgTypeIdentityObjectRequest, func() rdgproto.PayloadUnmarshaler { return &IdentityObjectRequestPayload{} })
+	registry.Register(MsgTypeIdentityObjectResponse, func() rdgproto.PayloadUnmarshaler { return &IdentityObjectResponsePayload{} })
 	registry.Register(MsgTypeResourceAccessRequest, func() rdgproto.PayloadUnmarshaler { return &ResourceAccessRequestPayload{} })
 	registry.Register(MsgTypeResourceAccessResponse, func() rdgproto.PayloadUnmarshaler { return &ResourceAccessResponsePayload{} })
 }
