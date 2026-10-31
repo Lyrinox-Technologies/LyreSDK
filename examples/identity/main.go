@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	address := flag.String("url", "wss://lyre.lyrinox.com/ws", "Lyre endpoint")
+	address := flag.String("url", "wss://lyre.lyrinox.com/lyre/ws", "Lyre endpoint")
 	service := flag.String("service", "syscodex-provider", "object service scope")
 	action := flag.String("action", "list", "list, get, revoke or restore")
 	kind := flag.String("kind", "server", "object kind filter")

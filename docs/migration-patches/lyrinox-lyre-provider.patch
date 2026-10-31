@@ -1,0 +1,116 @@
+--- a/go.mod
++++ b/go.mod
+@@ -9,6 +9,6 @@
+ 
+ require github.com/boombuler/barcode v1.0.2
+ 
+-require github.com/LyrinoxTechnologies/ridged-proto v1.0.0
++require github.com/Lyrinox-Technologies/ridged-proto v1.0.3
+ 
+-require github.com/Lyrinox-Technologies/LyreSDK v0.1.0
++require github.com/Lyrinox-Technologies/LyreSDK v0.1.1-0.20261031133833-6bf434cbf68d
+--- a/go.sum
++++ b/go.sum
+@@ -1,7 +1,7 @@
+-github.com/Lyrinox-Technologies/LyreSDK v0.1.0 h1:koa5vY+PrshPWPmW+4ICF8XGrc2MATrU2cwwEypMt0w=
+-github.com/Lyrinox-Technologies/LyreSDK v0.1.0/go.mod h1:Gu77JCOcIy3AnwX9LVgeE3pYFJuu4WMMc/H1jBZmotM=
+-github.com/LyrinoxTechnologies/ridged-proto v1.0.0 h1:QEf3v6zMOTsktgbod6QEdnR3A41qSge0ipAcfbVQiuQ=
+-github.com/LyrinoxTechnologies/ridged-proto v1.0.0/go.mod h1:koXFq9R1O9tNUW2EdnFVA0k1DMUQmOMaO8dcuVA2aBs=
++github.com/Lyrinox-Technologies/LyreSDK v0.1.1-0.20261031133833-6bf434cbf68d h1:chgcCX/AUVxrSBgP5OPp36vrLtUiXEQIJ/sX8+HUlQo=
++github.com/Lyrinox-Technologies/LyreSDK v0.1.1-0.20261031133833-6bf434cbf68d/go.mod h1:7oOTHQEwiZvWd8gNupfO03vjLdb18kYkw2IYqtbI3fI=
++github.com/Lyrinox-Technologies/ridged-proto v1.0.3 h1:FU0K7iYR90pLy0TQukQBqWTjPRqZkdrrzwffPOL/ju4=
++github.com/Lyrinox-Technologies/ridged-proto v1.0.3/go.mod h1:XxOH0MmfLVq7TskRyANMAWXoEGrhnFbh8pGg8IeGPrQ=
+ github.com/boombuler/barcode v1.0.2 h1:79yrbttoZrLGkL/oOI8hBrUKucwOL0oOjUgEguGMcJ4=
+ github.com/boombuler/barcode v1.0.2/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
+ github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e h1:MRM5ITcdelLK2j1vwZ3Je0FKVCfqOLp5zO6trqMLYs0=
+--- a/internal/provider/lyresdk_test.go
++++ b/internal/provider/lyresdk_test.go
+@@ -3,9 +3,10 @@
+ import (
+ 	"context"
+ 	"encoding/json"
++	"fmt"
+ 	lyresdk "github.com/Lyrinox-Technologies/LyreSDK"
+ 	"github.com/Lyrinox-Technologies/LyreSDK/wire"
+-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
++	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
+ 	"net"
+ 	"testing"
+ 	"time"
+@@ -64,45 +65,48 @@
+ 	if e = client.Authenticate(ctx, wire.AuthRequestPayload{Username: "fixture"}, nil); e != nil {
+ 		t.Fatal(e)
+ 	}
+-	cache := client.Cache("sdk-integration", lyresdk.CacheOptions{ProviderID: "lyrinox"})
+-	defer cache.Clear(context.Background())
+-	entry, e := cache.PutIfRevision(ctx, "document", map[string]any{"title": "hello"}, time.Minute, "")
+-	if e != nil || entry.Revision == "" {
+-		t.Fatalf("put: %+v %v", entry, e)
++	call := func(action string, input map[string]any) (map[string]any, error) {
++		input["namespace"] = "sdk-integration"
++		var out map[string]any
++		err := client.Call(ctx, "lyre.cache."+action+"@lyrinox.cache."+action+"@v1", input, &out)
++		return out, err
+ 	}
+-	var document struct{ Title string }
+-	_, found, e := cache.Get(ctx, "document", &document)
+-	if e != nil || !found || document.Title != "hello" {
+-		t.Fatalf("get: %+v %v %v", document, found, e)
++	entry, e := call("put", map[string]any{"key": "document", "value": map[string]any{"title": "hello"}, "ttl_seconds": 60, "if_revision": ""})
++	if e != nil || entry["revision"] == "" {
++		t.Fatal("put", entry, e)
+ 	}
+-	if _, e = cache.PutIfRevision(ctx, "document", "bad", time.Minute, "wrong-revision"); e == nil {
++	got, e := call("get", map[string]any{"key": "document"})
++	if e != nil || got["found"] != true || got["value"].(map[string]any)["title"] != "hello" {
++		t.Fatal("get", got, e)
++	}
++	if _, e = call("put", map[string]any{"key": "document", "value": "bad", "ttl_seconds": 60, "if_revision": "wrong"}); e == nil {
+ 		t.Fatal("CAS accepted wrong revision")
+ 	}
+-	if _, e = cache.PutIfRevision(ctx, "document", "updated", time.Minute, entry.Revision); e != nil {
++	if _, e = call("put", map[string]any{"key": "document", "value": "updated", "ttl_seconds": 60, "if_revision": entry["revision"]}); e != nil {
+ 		t.Fatal(e)
+ 	}
+-	page, e := cache.List(ctx, lyresdk.CacheListOptions{Limit: 1})
+-	if e != nil || len(page.Keys) != 1 || page.Keys[0] != "document" {
+-		t.Fatalf("list: %+v %v", page, e)
++	page, e := call("list", map[string]any{"limit": 1})
++	if e != nil || len(page["keys"].([]any)) != 1 {
++		t.Fatal("list", page, e)
+ 	}
+-	value, _, e := cache.Increment(ctx, "counter", 2, time.Minute)
+-	if e != nil || value != 2 {
+-		t.Fatalf("increment: %d %v", value, e)
++	increment, e := call("increment", map[string]any{"key": "counter", "delta": 2, "ttl_seconds": 60})
++	if e != nil || fmt.Sprint(increment["value"]) != "2" {
++		t.Fatal("increment", increment, e)
+ 	}
+-	deleted, e := cache.Delete(ctx, "document")
+-	if e != nil || !deleted {
+-		t.Fatalf("delete %v %v", deleted, e)
++	deleted, e := call("delete", map[string]any{"key": "document"})
++	if e != nil || deleted["deleted"] != true {
++		t.Fatal("delete", deleted, e)
+ 	}
+-	_, found, e = cache.Get(ctx, "document", &document)
+-	if e != nil || found {
+-		t.Fatalf("missing: %v %v", found, e)
++	missing, e := call("get", map[string]any{"key": "document"})
++	if e != nil || missing["found"] != false {
++		t.Fatal("missing", missing, e)
+ 	}
+-	count, e := cache.Clear(ctx)
+-	if e != nil || count != 1 {
+-		t.Fatalf("clear: %d %v", count, e)
++	cleared, e := call("clear", map[string]any{})
++	if e != nil || fmt.Sprint(cleared["deleted"]) != "1" {
++		t.Fatal("clear", cleared, e)
+ 	}
+-	if _, e = cache.Put(ctx, "bad", true, time.Millisecond); e == nil {
+-		t.Fatal("subsecond TTL accepted")
++	if _, e = call("put", map[string]any{"key": "bad", "value": true, "ttl_seconds": 0}); e == nil {
++		t.Fatal("invalid TTL accepted")
+ 	}
+ 	client.Close()
+ 	<-finished

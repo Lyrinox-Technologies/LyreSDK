@@ -41,21 +41,21 @@ func run() error {
 		var out struct {
 			Deleted int `json:"deleted"`
 		}
-		if err := c.Call(cleanup, "lyre.cache.clear@v1:lyrinox.cache.clear", map[string]any{"namespace": namespace}, &out); err != nil {
+		if err := c.Call(cleanup, "lyre.cache.clear@lyrinox.cache.clear@v1", map[string]any{"namespace": namespace}, &out); err != nil {
 			log.Printf("cache cleanup failed; TTL remains: %v", err)
 		}
 	}()
 	var put struct {
 		Revision string `json:"revision"`
 	}
-	if err = c.Call(ctx, "lyre.cache.put@v1:lyrinox.cache.put", map[string]any{"namespace": namespace, "key": "message", "value": "Hello from LyreSDK", "ttl_seconds": 60}, &put); err != nil {
+	if err = c.Call(ctx, "lyre.cache.put@lyrinox.cache.put@v1", map[string]any{"namespace": namespace, "key": "message", "value": "Hello from LyreSDK", "ttl_seconds": 60}, &put); err != nil {
 		return err
 	}
 	var got struct {
 		Found bool   `json:"found"`
 		Value string `json:"value"`
 	}
-	if err = c.Call(ctx, "lyre.cache.get@v1:lyrinox.cache.get", map[string]any{"namespace": namespace, "key": "message"}, &got); err != nil {
+	if err = c.Call(ctx, "lyre.cache.get@lyrinox.cache.get@v1", map[string]any{"namespace": namespace, "key": "message"}, &got); err != nil {
 		return err
 	}
 	if !got.Found {
