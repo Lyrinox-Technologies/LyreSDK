@@ -1,0 +1,54 @@
+--- a/lyre.go
++++ b/lyre.go
+@@ -34,7 +34,7 @@
+ 	"time"
+ 
+ 	"github.com/LyrinoxTechnologies/machID"
+-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
++	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
+ 	"github.com/gorilla/websocket"
+ )
+ 
+--- a/messages.go
++++ b/messages.go
+@@ -4,7 +4,7 @@
+ import (
+ 	"bytes"
+ 
+-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
++	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
+ )
+ 
+ // ============================================================================
+--- a/lyre_test.go
++++ b/lyre_test.go
+@@ -9,7 +9,7 @@
+ 	"testing"
+ 	"time"
+ 
+-	"github.com/LyrinoxTechnologies/ridged-proto/rdgproto"
++	"github.com/Lyrinox-Technologies/ridged-proto/rdgproto"
+ )
+ 
+ // ============================================================================
+--- a/go.mod
++++ b/go.mod
+@@ -3,8 +3,8 @@
+ go 1.25.5
+ 
+ require (
++	github.com/Lyrinox-Technologies/ridged-proto v1.0.3
+ 	github.com/LyrinoxTechnologies/machID v0.0.0
+-	github.com/LyrinoxTechnologies/ridged-proto v1.0.0
+ 	github.com/gorilla/websocket v1.5.3
+ )
+ 
+--- a/go.sum
++++ b/go.sum
+@@ -1,4 +1,4 @@
+-github.com/LyrinoxTechnologies/ridged-proto v1.0.0 h1:QEf3v6zMOTsktgbod6QEdnR3A41qSge0ipAcfbVQiuQ=
+-github.com/LyrinoxTechnologies/ridged-proto v1.0.0/go.mod h1:koXFq9R1O9tNUW2EdnFVA0k1DMUQmOMaO8dcuVA2aBs=
++github.com/Lyrinox-Technologies/ridged-proto v1.0.3 h1:FU0K7iYR90pLy0TQukQBqWTjPRqZkdrrzwffPOL/ju4=
++github.com/Lyrinox-Technologies/ridged-proto v1.0.3/go.mod h1:XxOH0MmfLVq7TskRyANMAWXoEGrhnFbh8pGg8IeGPrQ=
+ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
+ github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=

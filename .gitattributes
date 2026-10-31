@@ -1,0 +1,2 @@
+# Preserve unified patch context indentation.
+*.patch -whitespace

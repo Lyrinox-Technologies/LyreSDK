@@ -1,0 +1,22 @@
+--- a/go.mod
++++ b/go.mod
+@@ -2,8 +2,6 @@
+ 
+ go 1.25
+ 
+-require github.com/LyrinoxTechnologies/ridged-proto v1.0.0 // indirect
++require github.com/Lyrinox-Technologies/ridged-proto v1.0.3 // indirect
+ 
+-replace github.com/LyrinoxTechnologies/ridged-proto => /home/vetheon/Projects/Libraries/ridged-proto
+-
+-require github.com/Lyrinox-Technologies/LyreSDK v0.1.0
++require github.com/Lyrinox-Technologies/LyreSDK v0.1.1-0.20261031133833-6bf434cbf68d
+--- a/go.sum
++++ b/go.sum
+@@ -1,2 +1,4 @@
+-github.com/Lyrinox-Technologies/LyreSDK v0.1.0 h1:koa5vY+PrshPWPmW+4ICF8XGrc2MATrU2cwwEypMt0w=
+-github.com/Lyrinox-Technologies/LyreSDK v0.1.0/go.mod h1:Gu77JCOcIy3AnwX9LVgeE3pYFJuu4WMMc/H1jBZmotM=
++github.com/Lyrinox-Technologies/LyreSDK v0.1.1-0.20261031133833-6bf434cbf68d h1:chgcCX/AUVxrSBgP5OPp36vrLtUiXEQIJ/sX8+HUlQo=
++github.com/Lyrinox-Technologies/LyreSDK v0.1.1-0.20261031133833-6bf434cbf68d/go.mod h1:7oOTHQEwiZvWd8gNupfO03vjLdb18kYkw2IYqtbI3fI=
++github.com/Lyrinox-Technologies/ridged-proto v1.0.3 h1:FU0K7iYR90pLy0TQukQBqWTjPRqZkdrrzwffPOL/ju4=
++github.com/Lyrinox-Technologies/ridged-proto v1.0.3/go.mod h1:XxOH0MmfLVq7TskRyANMAWXoEGrhnFbh8pGg8IeGPrQ=
